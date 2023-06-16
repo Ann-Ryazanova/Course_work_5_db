@@ -51,7 +51,7 @@ class HeadHunterAPI:
             self.employers.append({'id_company': employer['id'], 'name_company': employer['name'],
                                    'url': employer['alternate_url']})
 
-            for self.__params['page'] in range(1):
+            for self.__params['page'] in range(20):
                 values = self.get_request_vacancies(emp)
                 for val in values:
                     if val['salary']['currency'].lower() == 'rur':
