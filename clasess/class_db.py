@@ -3,23 +3,29 @@ import psycopg2
 
 class DBCreating:
 
-    def create_database(self, database_name, params):
+    def __init__(self, employers, vacancies, db_name, params):
+        self.employers = employers
+        self.vacancies = vacancies
+        self.db_name = db_name
+        self.params = params
+
+    def create_database(self):
         """
-        Создание баз данных и таблиц для сохранения данных о работадателях и вакансиях.
+        Создание и сохранение баз данных и таблиц о работадателях и вакансиях.
         """
-        conn = psycopg2.connect(dbname='postgres', **params)
+        conn = psycopg2.connect(dbname='postgres', **self.params)
         conn.autocommit = True
         cur = conn.cursor()
 
-        #cur.execute(f"DROP DATABASE {database_name}")
-        cur.execute(f"CREATE DATABASE {database_name}")
+        cur.execute(f"DROP DATABASE IF EXISTS {self.db_name}")
+        cur.execute(f"CREATE DATABASE {self.db_name}")
 
         conn.close()
 
-        with psycopg2.connect(dbname=database_name, **params) as conn:
+        with psycopg2.connect(dbname=self.db_name, **self.params) as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                CREATE TABLE employers (
+                CREATE TABLE IF NOT EXISTS employers (
                 id_employer INT PRIMARY KEY, 
                 company_name VARCHAR(100),
                 url TEXT)
@@ -27,7 +33,7 @@ class DBCreating:
 
             with conn.cursor() as cur:
                 cur.execute("""
-                CREATE TABLE vacancies (
+                CREATE TABLE IF NOT EXISTS vacancies (
                 vacancy_id INT PRIMARY KEY,
                 vacancy_name VARCHAR(200) NOT NULL,
                 salary_from INT,
@@ -37,6 +43,40 @@ class DBCreating:
                 id_employer INT REFERENCES employers(id_employer),
                 url TEXT)
                 """)
+
+        conn.close()
+
+    def save_employers_to_database(self):
+        """ Функция для сохранения данных о компаниях в таблицу БД. """
+
+        with psycopg2.connect(dbname=self.db_name, **self.params) as conn:
+            with conn.cursor() as cur:
+                for employer in self.employers:
+                    cur.execute(
+                        """
+                        INSERT INTO employers (id_employer, company_name, url) 
+                        VALUES (%s, %s, %s)
+                        ON CONFLICT (id_employer) DO NOTHING
+                        """,
+                        (employer['id_company'], employer['name_company'], employer['url']))
+
+        conn.close()
+
+    def save_vacancies_to_database(self):
+        """ Функция для сохранения данных о вакансиях компаний в таблицу БД """
+
+        with psycopg2.connect(dbname=self.db_name, **self.params) as conn:
+            with conn.cursor() as cur:
+                for vacancy in self.vacancies:
+                    cur.execute("""
+                       INSERT INTO vacancies (vacancy_id, vacancy_name, salary_from, salary_to,
+                       currency, name_employer, id_employer, url) 
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                       ON CONFLICT (vacancy_id) DO NOTHING
+                       """,
+                                (vacancy['id_vacancy'], vacancy['title'], vacancy['salary_min'],
+                                 vacancy['salary_max'], vacancy['currency'], vacancy['employer'],
+                                 vacancy['id_employer'], vacancy['url']))
 
         conn.close()
 
