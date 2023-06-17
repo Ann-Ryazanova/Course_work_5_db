@@ -1,4 +1,3 @@
-import psycopg2
 import requests
 
 
@@ -85,35 +84,3 @@ class HeadHunterAPI:
             formatted_salary[1] = salary['to']
 
         return formatted_salary
-
-    def save_employers_to_database(self, db_name, params):
-        """ Функция для сохранения данных о компаниях в таблицу БД. """
-
-        with psycopg2.connect(dbname=db_name, **params) as conn:
-            with conn.cursor() as cur:
-                for employer in self.employers:
-                    cur.execute(
-                        """
-                        INSERT INTO employers (id_employer, company_name, url) 
-                        VALUES (%s, %s, %s)
-                        """,
-                        (employer['id_company'], employer['name_company'], employer['url']))
-
-        conn.close()
-
-    def save_vacancies_to_database(self, db_name, params):
-        """ Функция для сохранения данных о вакансиях компаний в таблицу БД """
-
-        with psycopg2.connect(dbname=db_name, **params) as conn:
-            with conn.cursor() as cur:
-                for vacancy in self.vacancies:
-                    cur.execute("""
-                    INSERT INTO vacancies (vacancy_id, vacancy_name, salary_from, salary_to,
-                    currency, name_employer, id_employer, url) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                    """,
-                                (vacancy['id_vacancy'], vacancy['title'], vacancy['salary_min'],
-                                 vacancy['salary_max'], vacancy['currency'], vacancy['employer'],
-                                 vacancy['id_employer'], vacancy['url']))
-
-        conn.close()
