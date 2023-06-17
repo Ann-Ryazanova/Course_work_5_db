@@ -14,13 +14,13 @@ def main():
           "\nПодождите идет загрузка данных...\n")
 
     hh = HeadHunterAPI()
-    hh.get_employers_and_vacancies()
+    employers, vacancies = hh.get_employers_and_vacancies()
 
-    database = DBCreating()
-    database.create_database(database_name, params)
+    database = DBCreating(employers, vacancies, database_name, params)
+    database.create_database()
 
-    hh.save_employers_to_database(database_name, params)
-    hh.save_vacancies_to_database(database_name, params)
+    database.save_employers_to_database()
+    database.save_vacancies_to_database()
 
     print(f"Информация по работодателям и их вакансиям получена и сохранена!")
 
@@ -37,20 +37,35 @@ def main():
                         '6: Выход\n').strip()
 
         if command.lower() == "1":
-            print(manager.get_companies_and_vacancies_count())
+            results = manager.get_companies_and_vacancies_count()
+            for result in results:
+                print(f"{result[0]}: {result[1]}")
 
         elif command.lower() == "2":
-            print(manager.get_all_vacancies())
+            results = manager.get_all_vacancies()
+            for result in results:
+                print(f'Компания: {result[0]}, Вакансия: {result[1]}, Зарплата от: {result[2]},'
+                      f'Зарплата до: {result[3]}, url: {result[4]}\n')
 
         elif command.lower() == "3":
-            print(manager.get_avg_salary())
+            results = manager.get_avg_salary()
+            for result in results:
+                print(f'Средняя зарплата по всем вакансиям: {result[0]}')
 
         elif command.lower() == "4":
-            print(manager.get_vacancies_with_higher_salary())
+            results = manager.get_vacancies_with_higher_salary()
+            for result in results:
+                print(result[0])
 
         elif command.lower() == "5":
             key_word = input("Введите название вакансии или ключевое слово для поиска\n")
-            print(manager.get_vacancies_with_keyword(key_word))
+            results = manager.get_vacancies_with_keyword(key_word)
+            for result in results:
+
+                print(f'{result[1]}, Зарплата от: {result[2]}, '
+                      f'Зарплата до: {result[3]}, Валюта: {result[4]}, '
+                      f'Компания: {result[5]}, url: {result[7]}\n'
+                      )
 
         elif command.lower() == "6":
             print("Спасибо, что воспользовались нашей программой.\n"
